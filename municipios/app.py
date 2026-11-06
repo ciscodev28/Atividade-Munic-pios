@@ -1,9 +1,10 @@
 
-from flask import Flask, render_template, request, jsonify, Response
+from flask import Flask, request, jsonify, Response
 import json
 
 app = Flask(__name__)
 
+# Dicionário inicial de municípios
 municipios_nordeste_dataset = {
     "metadados": {
         "regiao": "Nordeste",
@@ -20,6 +21,7 @@ municipios_nordeste_dataset = {
             "capital": True,
             "populacao_estimada": 2582360
         },
+
         "Salvador": {
             "id_ibge": 2927408,
             "estado": "Bahia",
@@ -30,91 +32,142 @@ municipios_nordeste_dataset = {
     }
 }
 
-municipios = municipios_nordeste_dataset["municipios"]
 
+# Página inicial
 @app.route("/")
 def inicio():
-    return render_template("index.html")
+    return """
+        <h1>Cadastro de Municípios do Nordeste</h1>
 
+        <p>Aplicativo desenvolvido com Flask.</p>
+
+        <a href="/municipios">Listar municípios</a>
+        <br><br>
+        <a href="/municipios/baixar">Baixar arquivo JSON</a>
+    """
+
+
+# 1. Listar todos os municípios ou filtrar por estado
 @app.route("/municipios", methods=["GET"])
-def listar():
+def listar_municipios():
+
     uf = request.args.get("uf")
 
+    municipios = municipios_nordeste_dataset["municipios"]
+
     if uf:
-        resultado = {
-            nome: dados
-            for nome, dados in municipios.items()
-            if dados["sigla_uf"].upper() == uf.upper()
-        }
-        return jsonify(resultado)
+        filtrados = {}
+
+        for nome, dados in municipios.items():
+            if dados["sigla_uf"].upper() == uf.upper():
+                filtrados[nome] = dados
+
+        return jsonify(filtrados)
 
     return jsonify(municipios)
 
+
+# 2. Consultar município pelo nome
 @app.route("/municipios/<nome>", methods=["GET"])
-def consultar(nome):
+def consultar_municipio(nome):
+
+    municipios = municipios_nordeste_dataset["municipios"]
+
     if nome in municipios:
-        return jsonify(municipios[nome])
+        return jsonify({
+            nome: municipios[nome]
+        })
 
-    return jsonify({"erro": "Município não encontrado"}), 404
+    return jsonify({
+        "erro": "Município não encontrado."
+    }), 404
 
+
+# 3. Cadastrar novo município
 @app.route("/municipios", methods=["POST"])
-def cadastrar():
+def cadastrar_municipio():
+
     dados = request.get_json()
 
-    if not dados or not dados.get("nome"):
-        return jsonify({"erro": "Informe o nome do município"}), 400
+    if not dados or "nome" not in dados:
+        return jsonify({
+            "erro": "Informe o nome do município."
+        }), 400
 
     nome = dados["nome"].strip()
 
+    if not nome:
+        return jsonify({
+            "erro": "O nome não pode ficar vazio."
+        }), 400
+
+    municipios = municipios_nordeste_dataset["municipios"]
+
     if nome in municipios:
-        return jsonify({"erro": "Município já cadastrado"}), 409
+        return jsonify({
+            "erro": "Esse município já está cadastrado."
+        }), 409
 
-    campos = [
-        "id_ibge", "estado", "sigla_uf",
-        "capital", "populacao_estimada"
-    ]
+    novo_municipio = dados.copy()
+    novo_municipio.pop("nome")
 
-    if any(campo not in dados for campo in campos):
-        return jsonify({"erro": "Preencha todos os campos"}), 400
+    municipios[nome] = novo_municipio
 
-    municipios[nome] = {
-        campo: dados[campo] for campo in campos
-    }
+    return jsonify({
+        "mensagem": "Município cadastrado com sucesso!",
+        "municipio": {nome: municipios[nome]}
+    }), 201
 
-    return jsonify({"mensagem": "Município cadastrado!"}), 201
 
+# 4. Atualizar município
 @app.route("/municipios/<nome>", methods=["PATCH"])
-def atualizar(nome):
+def atualizar_municipio(nome):
+
+    municipios = municipios_nordeste_dataset["municipios"]
+
     if nome not in municipios:
-        return jsonify({"erro": "Município não encontrado"}), 404
+        return jsonify({
+            "erro": "Município não encontrado."
+        }), 404
 
     dados = request.get_json()
 
-    if not isinstance(dados, dict):
-        return jsonify({"erro": "Dados inválidos"}), 400
+    if not isinstance(dados, dict) or not dados:
+        return jsonify({
+            "erro": "Informe os dados que deseja atualizar."
+        }), 400
 
-    campos = [
-        "id_ibge", "estado", "sigla_uf",
-        "capital", "populacao_estimada"
-    ]
-
-    if any(campo not in campos for campo in dados):
-        return jsonify({"erro": "Campo inválido"}), 400
-
+    # Atualiza somente os campos enviados
     municipios[nome].update(dados)
 
-    return jsonify({"mensagem": "Município atualizado!"})
+    return jsonify({
+        "mensagem": "Município atualizado com sucesso!",
+        "municipio": {nome: municipios[nome]}
+    })
 
+
+# 5. Excluir município
 @app.route("/municipios/<nome>", methods=["DELETE"])
-def excluir(nome):
+def excluir_municipio(nome):
+
+    municipios = municipios_nordeste_dataset["municipios"]
+
     if nome not in municipios:
-        return jsonify({"erro": "Município não encontrado"}), 404
+        return jsonify({
+            "erro": "Município não encontrado."
+        }), 404
 
     municipios.pop(nome)
-    return jsonify({"mensagem": "Município excluído!"})
 
-@app.route("/municipios/download")
-def download():
+    return jsonify({
+        "mensagem": "Município excluído com sucesso!"
+    })
+
+
+# 6. Baixar todos os municípios em arquivo JSON
+@app.route("/municipios/baixar", methods=["GET"])
+def baixar_json():
+
     arquivo = json.dumps(
         municipios_nordeste_dataset,
         ensure_ascii=False,
@@ -130,5 +183,7 @@ def download():
         }
     )
 
+
+# Inicialização do servidor
 if __name__ == "__main__":
     app.run(debug=True)

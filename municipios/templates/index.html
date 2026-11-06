@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Municípios do Nordeste</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header>
+        <h1>Atividade Prática 01: Municípios do Nordeste</h1>
+        <p>Gerenciamento de Municípios (Base em Memória)</p>
+    </header>
+    <main>
+        
+        <section class="informacoes">
+            <div class="card-info">
+                <span>🌎</span>
+                <div>
+                    <p>Região:</p>
+                    <strong>Nordeste</strong>
+                </div>
+            </div>
+            <div class="card-info">
+                <span>🇧🇷</span>
+                <div>
+                    <p>País:</p>
+                    <strong>Brasil</strong>
+                </div>
+            </div>
+
+            <div class="card-info">
+                <span>👥</span>
+                <div>
+                    <p>Total:</p>
+                    <strong>{{ municipios|length }}</strong>
+                </div>
+            </div>
+
+            <div class="card-info">
+                <span>ℹ️</span>
+                <div>
+                    <p>Fonte:</p>
+                    <strong>IBGE</strong>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="conteudo">
+
+            <div class="painel" id="cadastro">
+
+                <h2>Cadastrar / Atualizar Município</h2>
+
+                <form action="/salvar" method="POST">
+
+                    <input type="hidden" name="nome_original"
+                        value="{{ municipio_edicao_nome or '' }}">
+
+                    <label>Nome do Município</label>
+                    <input type="text" name="nome"
+                        value="{{ municipio_edicao.nome if municipio_edicao else '' }}"
+                        required>
+
+                    <label>ID IBGE</label>
+                    <input type="number" name="id_ibge"
+                        value="{{ municipio_edicao.id_ibge if municipio_edicao else '' }}"
+                        required>
+
+                    <div class="campos-lado">
+
+                        <div>
+                            <label>Estado</label>
+                            <input type="text" name="estado"
+                                value="{{ municipio_edicao.estado if municipio_edicao else '' }}"
+                                required>
+                        </div>
+
+                        <div>
+                            <label>UF</label>
+                            <input type="text" name="sigla_uf"
+                                maxlength="2"
+                                value="{{ municipio_edicao.sigla_uf if municipio_edicao else '' }}"
+                                required>
+                        </div>
+
+                    </div>
+
+                    <label>População Estimada</label>
+                    <input type="number" name="populacao_estimada"
+                        value="{{ municipio_edicao.populacao_estimada if municipio_edicao else '' }}"
+                        required>
+
+                    <div class="checkbox">
+
+                        <input type="checkbox" name="capital"
+                            {% if municipio_edicao and municipio_edicao.capital %}checked{% endif %}>
+
+                        <label>Capital?</label>
+
+                    </div>
+
+                    <div class="botoes">
+
+                        <button type="submit" class="btn-salvar">
+                            Salvar / Atualizar
+                        </button>
+
+                        <a href="/" class="btn-buscar">
+                            Limpar
+                        </a>
+                    </div>
+                </form>
+            </div>
+            <div class="painel" id="lista">
+                <h2>Lista de Municípios</h2>
+                <form action="/" method="GET" class="pesquisa">
+                    <div>
+                        <label>Busca</label>
+                        <input type="text" name="busca"
+                            placeholder="Busca"
+                            value="{{ busca }}">
+                    </div>
+                    <div>
+                        <label>Filtrar por UF</label>
+                        <input type="text" name="uf"
+                            placeholder="ex: CE"
+                            maxlength="2"
+                            value="{{ uf }}">
+                    </div>
+                    <button type="submit" class="btn-filtrar">
+                        Buscar
+                    </button>
+                </form>
+                <div class="novo-municipio">
+                    <a href="#cadastro" class="btn-salvar">
+                        Cadastrar Novo
+                    </a>
+                </div>
+                <div class="tabela-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>UF</th>
+                                <th>Capital</th>
+                                <th>População</th>
+                                <th>ID IBGE</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for nome, dados in municipios.items() %}
+                            <tr>
+                                <td>{{ nome }}</td>
+
+                                <td>{{ dados.sigla_uf }}</td>
+
+                                <td>
+                                    {% if dados.capital %}
+                                        Sim
+                                    {% else %}
+                                        Não
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {{ "{:,.0f}".format(dados.populacao_estimada).replace(",", ".") }}
+                                </td>
+
+                                <td>{{ dados.id_ibge }}</td>
+
+                                <td class="acoes">
+
+                                    <a href="/?editar={{ nome|urlencode }}"
+                                        class="btn-editar">
+                                        ✏️
+                                    </a>
+
+                                    <form action="/excluir/{{ nome|urlencode }}"
+                                        method="POST">
+
+                                        <button type="submit"
+                                            class="btn-excluir">
+                                            🗑️
+                                        </button>
+
+                                    </form>
+
+                                </td>
+
+                            </tr>
+
+                            {% else %}
+
+                            <tr>
+                                <td colspan="6">
+                                    Nenhum município encontrado.
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <a href="/municipios/baixar" class="btn-json">
+                    Baixar arquivo JSON
+                </a>
+
+            </div>
+
+        </section>
+    </main>
+    <footer>
+        Desenvolvido em Flask | Manipulação de Dicionários
+    </footer>
+</body>
+</html>
