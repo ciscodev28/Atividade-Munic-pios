@@ -1,10 +1,10 @@
 
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, render_template, redirect, url_for
 import json
 
 app = Flask(__name__)
 
-# Dicionário inicial de municípios
+# Dicionário inicial
 municipios_nordeste_dataset = {
     "metadados": {
         "regiao": "Nordeste",
@@ -36,30 +36,49 @@ municipios_nordeste_dataset = {
 # Página inicial
 @app.route("/")
 def inicio():
-    return """
-        <h1>Cadastro de Municípios do Nordeste</h1>
 
-        <p>Aplicativo desenvolvido com Flask.</p>
+    municipios = municipios_nordeste_dataset["municipios"]
 
-        <a href="/municipios">Listar municípios</a>
-        <br><br>
-        <a href="/municipios/baixar">Baixar arquivo JSON</a>
-    """
+    busca = request.args.get("busca", "").strip().lower()
+    uf = request.args.get("uf", "").strip().upper()
+
+    filtrados = {}
+
+    for nome, dados in municipios.items():
+
+        if busca and busca not in nome.lower():
+            continue
+
+        if uf and uf != dados["sigla_uf"].upper():
+            continue
+
+        filtrados[nome] = dados
+
+    nome_edicao = request.args.get("editar")
+    municipio_edicao = municipios.get(nome_edicao) if nome_edicao else None
+
+    return render_template(
+        "index.html",
+        municipios=filtrados,
+        municipio_edicao=municipio_edicao,
+        municipio_edicao_nome=nome_edicao,
+        busca=busca,
+        uf=uf
+    )
 
 
-# 1. Listar todos os municípios ou filtrar por estado
+# 1. Listar municípios ou filtrar por UF
 @app.route("/municipios", methods=["GET"])
 def listar_municipios():
 
-    uf = request.args.get("uf")
-
     municipios = municipios_nordeste_dataset["municipios"]
+    uf = request.args.get("uf", "").strip().upper()
 
     if uf:
         filtrados = {}
 
         for nome, dados in municipios.items():
-            if dados["sigla_uf"].upper() == uf.upper():
+            if dados["sigla_uf"].upper() == uf:
                 filtrados[nome] = dados
 
         return jsonify(filtrados)
@@ -83,13 +102,13 @@ def consultar_municipio(nome):
     }), 404
 
 
-# 3. Cadastrar novo município
+# 3. Cadastrar município via JSON
 @app.route("/municipios", methods=["POST"])
 def cadastrar_municipio():
 
-    dados = request.get_json()
+    dados = request.get_json(silent=True)
 
-    if not dados or "nome" not in dados:
+    if not isinstance(dados, dict) or not dados.get("nome"):
         return jsonify({
             "erro": "Informe o nome do município."
         }), 400
@@ -119,7 +138,7 @@ def cadastrar_municipio():
     }), 201
 
 
-# 4. Atualizar município
+# 4. Atualizar município via PATCH
 @app.route("/municipios/<nome>", methods=["PATCH"])
 def atualizar_municipio(nome):
 
@@ -130,14 +149,13 @@ def atualizar_municipio(nome):
             "erro": "Município não encontrado."
         }), 404
 
-    dados = request.get_json()
+    dados = request.get_json(silent=True)
 
     if not isinstance(dados, dict) or not dados:
         return jsonify({
             "erro": "Informe os dados que deseja atualizar."
         }), 400
 
-    # Atualiza somente os campos enviados
     municipios[nome].update(dados)
 
     return jsonify({
@@ -146,7 +164,7 @@ def atualizar_municipio(nome):
     })
 
 
-# 5. Excluir município
+# 5. Excluir município via DELETE
 @app.route("/municipios/<nome>", methods=["DELETE"])
 def excluir_municipio(nome):
 
@@ -164,7 +182,58 @@ def excluir_municipio(nome):
     })
 
 
-# 6. Baixar todos os municípios em arquivo JSON
+# 6. Salvar pelo formulário HTML
+@app.route("/salvar", methods=["POST"])
+def salvar():
+
+    municipios = municipios_nordeste_dataset["municipios"]
+
+    nome = request.form.get("nome", "").strip()
+    nome_original = request.form.get("nome_original", "").strip()
+
+    if not nome:
+        return "Informe o nome do município.", 400
+
+    try:
+        novo_municipio = {
+            "id_ibge": int(request.form["id_ibge"]),
+            "estado": request.form["estado"].strip(),
+            "sigla_uf": request.form["sigla_uf"].strip().upper(),
+            "capital": "capital" in request.form,
+            "populacao_estimada": int(request.form["populacao_estimada"])
+        }
+
+    except (ValueError, KeyError):
+        return "Verifique os dados informados.", 400
+
+    if nome_original and nome_original in municipios:
+
+        if nome != nome_original and nome in municipios:
+            return "Esse município já está cadastrado.", 409
+
+        municipios.pop(nome_original)
+
+    elif nome in municipios:
+        return "Esse município já está cadastrado.", 409
+
+    municipios[nome] = novo_municipio
+
+    return redirect(url_for("inicio"))
+
+
+# 7. Excluir pelo formulário HTML
+@app.route("/excluir/<nome>", methods=["POST"])
+def excluir_pela_pagina(nome):
+
+    municipios = municipios_nordeste_dataset["municipios"]
+
+    if nome in municipios:
+        municipios.pop(nome)
+
+    return redirect(url_for("inicio"))
+
+
+# 8. Baixar arquivo JSON
 @app.route("/municipios/baixar", methods=["GET"])
 def baixar_json():
 
@@ -186,4 +255,4 @@ def baixar_json():
 
 # Inicialização do servidor
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=5000)

@@ -1,0 +1,304 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f3f5;
+    color: #222;
+}
+
+/* Cabeçalho */
+header {
+    background-color: #29446f;
+    color: white;
+    text-align: center;
+    padding: 35px 15px 65px;
+}
+
+header h1 {
+    font-size: 27px;
+    margin-bottom: 10px;
+}
+
+header p {
+    font-size: 15px;
+}
+
+/* Conteúdo principal */
+main {
+    max-width: 1200px;
+    width: 92%;
+    margin: -25px auto 30px;
+}
+
+/* Informações */
+.informacoes {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 15px;
+}
+
+.card-info {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-info span {
+    font-size: 22px;
+}
+
+.card-info p {
+    font-size: 13px;
+    margin-bottom: 3px;
+}
+
+.card-info strong {
+    font-size: 14px;
+}
+
+/* Organização dos painéis */
+.conteudo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+/* Painéis */
+.painel {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.painel h2 {
+    font-size: 19px;
+    font-weight: 500;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Formulários */
+.painel form {
+    padding: 12px;
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+input {
+    width: 100%;
+    padding: 9px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+input:focus {
+    outline: none;
+    border-color: #3478c8;
+}
+
+/* Campos lado a lado */
+.campos-lado {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+/* Checkbox */
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.checkbox input {
+    width: auto;
+    margin: 0;
+}
+
+.checkbox label {
+    margin: 0;
+}
+
+/* Botões */
+button,
+.btn-salvar,
+.btn-limpar,
+.btn-filtrar,
+.btn-editar,
+.btn-excluir,
+.btn-json {
+    border: none;
+    border-radius: 4px;
+    padding: 9px 12px;
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 13px;
+    display: inline-block;
+}
+
+button {
+    font-family: Arial, sans-serif;
+}
+
+.btn-salvar {
+    background-color: #319653;
+}
+
+.btn-limpar {
+    background-color: #1479d4;
+}
+
+.btn-filtrar {
+    background-color: #1479d4;
+}
+
+.btn-editar {
+    background-color: #1479d4;
+}
+
+.btn-excluir {
+    background-color: #d83e49;
+}
+
+.btn-json {
+    background-color: #29446f;
+    margin: 12px;
+}
+
+.botoes {
+    display: flex;
+    gap: 6px;
+    margin-top: 15px;
+}
+
+/* Pesquisa */
+.pesquisa {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    align-items: end;
+}
+
+.pesquisa input {
+    margin-bottom: 5px;
+}
+
+.pesquisa button {
+    justify-self: start;
+}
+
+/* Cadastrar novo */
+.novo-municipio {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 12px 12px;
+}
+
+/* Tabela */
+.tabela-container {
+    padding: 0 12px 12px;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+th,
+td {
+    padding: 10px 7px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    font-weight: bold;
+    background-color: #fafafa;
+}
+
+tbody tr:hover {
+    background-color: #f1f4f8;
+}
+
+.acoes {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.acoes form {
+    padding: 0;
+}
+
+.acoes button,
+.acoes a {
+    padding: 6px 8px;
+}
+
+/* Rodapé */
+footer {
+    max-width: 1200px;
+    width: 92%;
+    margin: 25px auto;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    font-size: 12px;
+}
+
+/* Responsividade */
+@media (max-width: 800px) {
+
+    .informacoes {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .conteudo {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 450px) {
+
+    header h1 {
+        font-size: 21px;
+    }
+
+    .informacoes {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .campos-lado {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .pesquisa {
+        grid-template-columns: 1fr;
+    }
+
+}
