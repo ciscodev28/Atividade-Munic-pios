@@ -2,9 +2,10 @@
 from flask import Flask, request, jsonify, Response, render_template, redirect, url_for
 import json
 
-app = Flask(__name__)
+app = Flask(__name__,
+            template_folder = "municipios/templates",
+            static_folder="municipios/static")
 
-# Dicionário inicial
 municipios_nordeste_dataset = {
     "metadados": {
         "regiao": "Nordeste",
@@ -33,7 +34,7 @@ municipios_nordeste_dataset = {
 }
 
 
-# Página inicial
+# Página inicial 
 @app.route("/")
 def inicio():
 
@@ -67,7 +68,7 @@ def inicio():
     )
 
 
-# 1. Listar municípios ou filtrar por UF
+# 1. Listar municípios ou filtrar por UF 
 @app.route("/municipios", methods=["GET"])
 def listar_municipios():
 
